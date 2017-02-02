@@ -309,6 +309,7 @@ public class ByteBlock {
         byte a = '5';
         byte b = '3';
 
+        //ToDo tut
         byte c = (byte) (a ^ b);
 
         toAssign = new ByteBlock(tmp);
