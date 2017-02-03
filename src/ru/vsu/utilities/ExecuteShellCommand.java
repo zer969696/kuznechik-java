@@ -17,6 +17,10 @@ public class ExecuteShellCommand {
             ProcessBuilder pb = new ProcessBuilder("bash", tempScript.toString());
             pb.inheritIO();
             Process process = pb.start();
+            InputStream is = process.getInputStream();
+            StreamGobbler pOut = new StreamGobbler(is, new PrintStream(System.out));
+            pOut.start();
+
             process.waitFor();
         } catch (InterruptedException e) {
             e.printStackTrace();
