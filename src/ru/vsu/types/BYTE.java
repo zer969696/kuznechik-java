@@ -12,6 +12,10 @@ public class BYTE {
         this.value = value;
     }
 
+    public BYTE(int value) {
+        this.value = (char) value;
+    }
+
     public BYTE(BYTE byteValue) {
         this.value = byteValue.getValue();
     }

@@ -48,7 +48,7 @@ public class ByteBlock {
      * Конструктор, который создает блок байтов длинной 'size' и
      * заполняет этот блок байтов инициирующим значением 'initValue'
      *
-     * @param size - размер блока байтов
+     * @param size      - размер блока байтов
      * @param initValue - значение, которым заполняется каждый элемент блок байтов
      */
     public ByteBlock(int size, BYTE initValue) {
@@ -70,11 +70,11 @@ public class ByteBlock {
      * 1. берет 'size' элементов из 'blocks', 'blocks' - массив байтов, который посылается
      * в конструктор
      * 2. создает блок байтов размером 'size', и копирует элементы из пункта 1.
-     *
+     * <p>
      * Массив байтов остается нетронутым
      *
      * @param blocks - массив байтов
-     * @param size - размер создаваемого блока байтов и размер количества копируемых эл-тов
+     * @param size   - размер создаваемого блока байтов и размер количества копируемых эл-тов
      */
     public ByteBlock(BYTE[] blocks, int size) {
         this.amountOfBytes = size;
@@ -97,7 +97,7 @@ public class ByteBlock {
         this.blocks = new BYTE[blockToCopyAndDelete.getAmountOfBytes()];
 
         for (int i = 0; i < this.amountOfBytes; i++) {
-            this.blocks[i] = new BYTE(blockToCopyAndDelete.getBlocks()[i]);
+            this.blocks[i] = new BYTE(blockToCopyAndDelete.getBlocks()[i].getValue());
         }
 
         blockToCopyAndDelete.setAmountOfBytes(0);
@@ -112,7 +112,9 @@ public class ByteBlock {
      *              и далее обнуляем блок байтов block
      */
     public void assignMove(ByteBlock block) {
-        if (this == block) { return; }
+        if (this == block) {
+            return;
+        }
 
         if (this.blocks != null) {
             this.blocks = null;
@@ -161,7 +163,7 @@ public class ByteBlock {
      * посылаемый массив байтов останется нетронутым
      *
      * @param blocks - посылаемый массив байтов
-     * @param size - размер посылаемого массива байтов
+     * @param size   - размер посылаемого массива байтов
      */
     public void reset(BYTE[] blocks, int size) {
         if (this.blocks != null) {
@@ -195,7 +197,7 @@ public class ByteBlock {
      * Метод возращает блок байтов, который получается путем "среза" массива байтов
      * с позиции 'start' длины 'length'
      *
-     * @param start - начальный индекс среза массива
+     * @param start  - начальный индекс среза массива
      * @param length - длина среза массива
      * @return блок байтов
      */
@@ -238,7 +240,7 @@ public class ByteBlock {
      * 'length' == 4, то получится 2 блока байтов, один из 4 элементов, другой из 1
      *
      * @param sourceBlock - блок байтов, который будем делить на части
-     * @param length - длина каждой части
+     * @param length      - длина каждой части
      * @return список блоков байтов, поделенных на равные части
      */
     public static List<ByteBlock> splitBlocks(ByteBlock sourceBlock, int length) {
@@ -265,7 +267,9 @@ public class ByteBlock {
      * @return соединенный блок байтов
      */
     public static ByteBlock joinBlocks(List<ByteBlock> byteBlocksList) {
-        if (byteBlocksList.isEmpty()) { return new ByteBlock(0, new BYTE('0')); }
+        if (byteBlocksList.isEmpty()) {
+            return new ByteBlock(0, new BYTE('0'));
+        }
 
         int listSize = byteBlocksList.size();
         int blockSize = byteBlocksList.get(0).getAmountOfBytes();
@@ -294,6 +298,15 @@ public class ByteBlock {
         return tmp;
     }
 
+    /**
+     * Фукнция выполняет операцию XOR для двух блоков байтов и
+     * присваивает результат третьему блоку байтов. Используются
+     * нижние две функции как помощники
+     *
+     * @param toAssign   - блок байтов, в который будет заполнен результат функции
+     * @param leftBlock  - левый блок байтов, для XOR-а
+     * @param rightBlock - правй блок байтов, для XOR-а
+     */
     public static void xorBlocks(ByteBlock toAssign, ByteBlock leftBlock, ByteBlock rightBlock) {
         int resultSize = leftBlock.getAmountOfBytes() > rightBlock.getAmountOfBytes()
                 ? rightBlock.getAmountOfBytes()
@@ -302,16 +315,69 @@ public class ByteBlock {
         ByteBlock tmp = new ByteBlock(resultSize, new BYTE('0'));
 
         for (int i = 0; i < resultSize; i++) {
-            tmp.getBlocks()[i].setValue(
-                    (char) (leftBlock.getBlocks()[i].getValue() ^ rightBlock.getBlocks()[i].getValue()));
+            tmp.getBlocks()[i].setValue(xorHelper(leftBlock.getBlocks()[i], rightBlock.getBlocks()[i]).getValue());
         }
 
-        byte a = '5';
-        byte b = '3';
+        toAssign.setAmountOfBytes(tmp.getAmountOfBytes());
+        for (int i = 0; i < resultSize; i++) {
+            toAssign.getBlocks()[i].setValue(tmp.getBlocks()[i].getValue());
+        }
+    }
 
-        //ToDo tut
-        byte c = (byte) (a ^ b);
+    /**
+     * Функция выполняет XOR операцию на двух байтах, побитно стравнивая каждое значение
+     * в левом байте и правом байте
+     *
+     * @param left  - левый байт
+     * @param right - правый байт
+     * @return xor результат левого и правого байта
+     */
+    private static BYTE xorHelper(BYTE left, BYTE right) {
+        char leftValue = left.getValue();
+        char rightValue = right.getValue();
 
-        toAssign = new ByteBlock(tmp);
+        String binaryLeftValue = normalizeBinaryString(toBinaryString(leftValue));
+        String binaryRightValue = normalizeBinaryString(toBinaryString(rightValue));
+
+        StringBuilder resultXorCharValue = new StringBuilder();
+        for (int i = 0; i < binaryLeftValue.length(); i++) {
+            if (binaryLeftValue.charAt(i) == '0') {
+                if (binaryRightValue.charAt(i) == '0') {
+                    resultXorCharValue.append('0');
+                } else {
+                    resultXorCharValue.append('1');
+                }
+            } else if (binaryRightValue.charAt(i) == '1') {
+                resultXorCharValue.append('0');
+            } else {
+                resultXorCharValue.append('1');
+            }
+        }
+
+        int temp = Integer.parseInt(resultXorCharValue.toString(), 2);
+        char resultedChar = (char) temp;
+
+        return new BYTE(resultedChar);
+    }
+
+    /**
+     * Функция дополняет бинарные представления 'char' вида 00101, до вида 00000101 (8 знаков)
+     *
+     * @param binaryString - стринговое бинарное представление 'char'
+     * @return нормализированное, дополненное до 8 байтов,
+     * значение бинарного представления 'char'
+     */
+    private static String normalizeBinaryString(String binaryString) {
+        if (binaryString.length() < 8) {
+            StringBuilder normalizedResult = new StringBuilder();
+            for (int i = 0; i < 8 - binaryString.length(); i++) {
+                normalizedResult.append("0");
+            }
+
+            normalizedResult.append(binaryString);
+            return normalizedResult.toString();
+        }
+
+        return binaryString;
     }
 }
